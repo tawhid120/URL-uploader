@@ -48,3 +48,6 @@ os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 # Web Dashboard settings
 DASHBOARD_PORT = int(os.environ.get("DASHBOARD_PORT", 8080))
 DASHBOARD_TOKEN = os.environ.get("DASHBOARD_TOKEN", "")
+
+# Web application port – cloud platforms (Render, Railway, Heroku) inject PORT.
+PORT = int(os.environ.get("PORT", str(DASHBOARD_PORT)))

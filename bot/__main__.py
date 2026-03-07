@@ -1,34 +1,42 @@
+"""Entry-point for the URL Uploader Bot web application.
+
+Running ``python -m bot`` starts a **uvicorn** HTTP server whose
+FastAPI ``lifespan`` automatically starts and stops the Pyrogram
+Telegram bot.  This makes the application deployable on any platform
+that expects a long-running HTTP process (Render, Railway, Heroku,
+Koyeb, etc.).
+"""
+
 import logging
 
-from bot.client import bot, user_session
+# ---- configure logging FIRST so every subsequent import is captured ----
+from bot.logging_config import setup_logging
 
-# Register all handlers by importing them
-import bot.handlers.commands.start  # noqa: F401
-import bot.handlers.commands.help  # noqa: F401
-import bot.handlers.commands.settings  # noqa: F401
-import bot.handlers.commands.myplan  # noqa: F401
-import bot.handlers.commands.upgrade  # noqa: F401
-import bot.handlers.upload.bulk  # noqa: F401
-import bot.handlers.upload.cookie  # noqa: F401
-import bot.handlers.upload.thumbnail  # noqa: F401
-import bot.handlers.admin.commands  # noqa: F401
-import bot.handlers.upload.url_handler  # noqa: F401
-import bot.handlers.callbacks  # noqa: F401
+setup_logging()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
+from bot.config import PORT  # noqa: E402
+
+# Register all Pyrogram handlers by importing them.
+import bot.handlers.commands.start  # noqa: F401, E402
+import bot.handlers.commands.help  # noqa: F401, E402
+import bot.handlers.commands.settings  # noqa: F401, E402
+import bot.handlers.commands.myplan  # noqa: F401, E402
+import bot.handlers.commands.upgrade  # noqa: F401, E402
+import bot.handlers.upload.bulk  # noqa: F401, E402
+import bot.handlers.upload.cookie  # noqa: F401, E402
+import bot.handlers.upload.thumbnail  # noqa: F401, E402
+import bot.handlers.admin.commands  # noqa: F401, E402
+import bot.handlers.upload.url_handler  # noqa: F401, E402
+import bot.handlers.callbacks  # noqa: F401, E402
+
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-    logger.info("Starting URL Uploader Bot…")
+    import uvicorn
 
-    # Start the optional admin web dashboard
-    from bot.dashboard import start_dashboard
-    start_dashboard()
+    from bot.dashboard import _get_app
 
-    if user_session:
-        logger.info("User session detected — 4 GB uploads enabled.")
-        user_session.start()
-    bot.run()
+    logger.info("Starting URL Uploader Bot as web application on port %s …", PORT)
+
+    app = _get_app()
+    uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="info")

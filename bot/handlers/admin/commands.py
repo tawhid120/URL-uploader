@@ -1,10 +1,13 @@
 import asyncio
+import logging
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
 from bot.config import ADMIN_IDS
 from bot.database.users import ban_user, unban_user, get_all_user_ids
+
+logger = logging.getLogger(__name__)
 
 
 def _is_admin(user_id: int) -> bool:
@@ -22,6 +25,7 @@ async def broadcast_handler(client: Client, message: Message):
         )
 
     user_ids = await get_all_user_ids()
+    logger.info("Broadcast started by admin %s to %s users.", message.from_user.id, len(user_ids))
     status_msg = await message.reply_text(
         f"📢 **Broadcasting to {len(user_ids)} users…**"
     )
@@ -40,6 +44,7 @@ async def broadcast_handler(client: Client, message: Message):
         f"✅ **Broadcast complete!**\n"
         f"Sent: {sent} | Failed: {failed}"
     )
+    logger.info("Broadcast complete: sent=%s failed=%s", sent, failed)
 
 
 @Client.on_message(filters.command("ban") & filters.private)
@@ -55,6 +60,7 @@ async def ban_handler(_client: Client, message: Message):
 
     target = int(parts[1])
     await ban_user(target)
+    logger.info("User %s banned by admin %s.", target, message.from_user.id)
     await message.reply_text(f"🚫 User `{target}` has been **banned**.")
 
 
@@ -71,4 +77,5 @@ async def unban_handler(_client: Client, message: Message):
 
     target = int(parts[1])
     await unban_user(target)
+    logger.info("User %s unbanned by admin %s.", target, message.from_user.id)
     await message.reply_text(f"✅ User `{target}` has been **unbanned**.")

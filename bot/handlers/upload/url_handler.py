@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 
@@ -33,6 +34,8 @@ from bot.helpers.utils import human_bytes
 from bot.helpers.fsub import check_fsub
 from bot.helpers.media import split_file, generate_thumbnail, create_zip
 
+logger = logging.getLogger(__name__)
+
 # Simple URL regex
 _URL_RE = re.compile(r"https?://\S+")
 
@@ -54,6 +57,7 @@ async def url_handler(client: Client, message: Message):
     url = url_match.group(0)
     user = message.from_user
     await ensure_user(user.id, user.first_name)
+    logger.info("URL received from user %s (%s): %s", user.id, user.first_name, url)
 
     if await is_banned(user.id):
         return await message.reply_text("🚫 **You are banned from using this bot.**")
@@ -88,9 +92,11 @@ async def url_handler(client: Client, message: Message):
 
     # ---- Torrent / Magnet shortcut ----
     if is_torrent_or_magnet(url):
+        logger.info("Torrent/magnet detected for user %s: %s", user.id, url)
         await status_msg.edit_text("🧲 **Downloading torrent…** This may take a while.")
         files = await download_torrent(url, user.id)
         if not files:
+            logger.warning("Torrent download failed for user %s: %s", user.id, url)
             return await status_msg.edit_text("❌ **Torrent download failed.**\nMake sure `aria2c` is installed.")
         total_size = sum(os.path.getsize(f) for f in files)
         for fpath in files:
@@ -118,6 +124,7 @@ async def url_handler(client: Client, message: Message):
     try:
         info = await extract_info(url, cookie_path)
     except Exception as exc:
+        logger.error("Failed to extract info for %s (user %s): %s", url, user.id, exc)
         await status_msg.edit_text(f"❌ **Failed to fetch info:**\n`{exc}`")
         return
 
@@ -182,9 +189,11 @@ async def _do_download(
 ):
     """Download and upload the file to the user."""
     user = message.from_user
+    logger.info("Starting download for user %s: url=%s format=%s", user.id, url, format_id)
     try:
         file_path = await download_media(url, format_id, cookie_path, user.id)
     except Exception as exc:
+        logger.error("Download failed for user %s: %s", user.id, exc)
         await status_msg.edit_text(f"❌ **Download failed:**\n`{exc}`")
         return
 
@@ -193,6 +202,10 @@ async def _do_download(
         return
 
     file_size = os.path.getsize(file_path)
+    logger.info(
+        "Download complete for user %s: %s (%s)",
+        user.id, os.path.basename(file_path), human_bytes(file_size),
+    )
     await status_msg.edit_text(
         f"📤 **Uploading…** ({human_bytes(file_size)})"
     )
@@ -250,6 +263,7 @@ async def _do_download(
                 )
 
     await increment_usage(user.id, file_size)
+    logger.info("Upload complete for user %s: %s", user.id, os.path.basename(file_path))
     await status_msg.delete()
 
     # Clean up downloaded files
