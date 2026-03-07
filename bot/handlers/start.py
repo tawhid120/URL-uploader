@@ -1,13 +1,21 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-from bot.database.users import ensure_user
+from bot.database.users import ensure_user, is_banned
+from bot.helpers.fsub import check_fsub
 
 
 @Client.on_message(filters.command("start") & filters.private)
 async def start_handler(client: Client, message: Message):
     user = message.from_user
     await ensure_user(user.id, user.first_name)
+
+    if await is_banned(user.id):
+        return await message.reply_text("🚫 **You are banned from using this bot.**")
+
+    if not await check_fsub(client, message):
+        return
+
     text = (
         f"🌟 **Welcome to URL Uploader Bot, {user.first_name}!** 🌟\n\n"
         "🚀 **What I Can Do:**\n"

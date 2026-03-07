@@ -18,12 +18,14 @@ async def settings_handler(_client: Client, message: Message):
     bw_limit = human_bytes(limit["bandwidth"])
     bw_used = human_bytes(usage.get("bandwidth", 0))
     thumb = "✅ Set" if db_user.get("thumbnail") else "❌ Not set"
+    caption = "✅ Set" if db_user.get("caption") else "❌ Not set"
 
     text = (
         "⚙️ **YOUR SETTINGS**\n\n"
         f"👤 **Account Tier:** {plan_display(plan)}\n"
         f"📊 **Today's Usage:** {bw_used} / {bw_limit}\n"
         f"🖼 **Custom Thumbnail:** {thumb}\n"
+        f"✏️ **Custom Caption:** {caption}\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n"
         "Manage your settings using the buttons below."
     )
