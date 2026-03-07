@@ -1,14 +1,30 @@
-"""Lightweight admin web dashboard using FastAPI.
+"""Web application wrapping the Telegram bot with an admin dashboard.
 
-Provides a read-only overview of bot statistics and user management
-(ban / unban).  Guarded by a simple token-based authentication.
+The FastAPI application is the **primary process**.  The Pyrogram
+Telegram bot is started/stopped via the ASGI *lifespan* so both share
+the same asyncio event loop.  This architecture lets the application
+be deployed on any cloud platform (Render, Railway, Heroku, Koyeb …)
+that expects an HTTP server bound to a ``PORT``.
+
+Endpoints
+---------
+* ``GET  /health``             — unauthenticated health-check
+* ``GET  /?token=…``           — admin dashboard (HTML)
+* ``GET  /logs?token=…``       — recent bot log lines (HTML)
+* ``POST /ban?token=…&user_id=…``  — ban a user
+* ``POST /unban?token=…&user_id=…`` — unban a user
 """
 
+import logging
 import os
 import secrets
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from bot.config import ADMIN_IDS, DASHBOARD_PORT, DASHBOARD_TOKEN
+from bot.config import ADMIN_IDS, DASHBOARD_PORT, DASHBOARD_TOKEN, PORT
+from bot.logging_config import memory_handler
+
+logger = logging.getLogger(__name__)
 
 # Lazy imports – FastAPI / uvicorn are optional dependencies.
 _app = None
@@ -28,9 +44,32 @@ def _get_app():
         return _app
 
     from fastapi import FastAPI, Depends, HTTPException, Query
-    from fastapi.responses import HTMLResponse
+    from fastapi.responses import HTMLResponse, PlainTextResponse
 
-    app = FastAPI(title="URL Uploader Dashboard", docs_url=None, redoc_url=None)
+    # ---- lifespan: start / stop the Telegram bot ----
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        from bot.client import bot, user_session
+
+        logger.info("Starting Telegram bot via web-app lifespan…")
+        await bot.start()
+        if user_session:
+            logger.info("User session detected — starting for 4 GB uploads.")
+            await user_session.start()
+        logger.info("Telegram bot is running.")
+        yield
+        logger.info("Shutting down Telegram bot…")
+        if user_session:
+            await user_session.stop()
+        await bot.stop()
+        logger.info("Telegram bot stopped.")
+
+    app = FastAPI(
+        title="URL Uploader Bot",
+        docs_url=None,
+        redoc_url=None,
+        lifespan=lifespan,
+    )
 
     # ---- auth dependency ----
     async def _verify_token(token: str = Query(...)):
@@ -38,6 +77,11 @@ def _get_app():
             raise HTTPException(status_code=403, detail="Invalid token")
 
     # ---- routes ----
+    @app.get("/health")
+    async def health_check():
+        """Unauthenticated health-check for platform probes."""
+        return {"status": "ok"}
+
     @app.get("/", response_class=HTMLResponse)
     async def dashboard(token: str = Query(...)):
         """Main dashboard page."""
@@ -86,16 +130,42 @@ h1 {{ color: #333; }}
 </body></html>"""
         return HTMLResponse(content=html)
 
+    @app.get("/logs", response_class=HTMLResponse)
+    async def view_logs(
+        token: str = Query(...),
+        count: int = Query(200, ge=1, le=1000),
+    ):
+        """Show recent bot log lines in the browser."""
+        if not _token_ok(token):
+            raise HTTPException(status_code=403, detail="Invalid token")
+
+        lines = memory_handler.get_logs(count)
+        escaped = "\n".join(
+            line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            for line in lines
+        )
+        html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Bot Logs</title>
+<style>
+body {{ background: #1e1e1e; color: #d4d4d4; font-family: monospace;
+       font-size: 13px; padding: 1em; white-space: pre-wrap; }}
+</style></head><body>
+<pre>{escaped}</pre>
+</body></html>"""
+        return HTMLResponse(content=html)
+
     @app.post("/ban", dependencies=[Depends(_verify_token)])
     async def ban_user(user_id: int = Query(...)):
         from bot.database.users import ban_user as db_ban
         await db_ban(user_id)
+        logger.info("User %s banned via dashboard.", user_id)
         return {"ok": True, "action": "banned", "user_id": user_id}
 
     @app.post("/unban", dependencies=[Depends(_verify_token)])
     async def unban_user(user_id: int = Query(...)):
         from bot.database.users import unban_user as db_unban
         await db_unban(user_id)
+        logger.info("User %s unbanned via dashboard.", user_id)
         return {"ok": True, "action": "unbanned", "user_id": user_id}
 
     _app = app
@@ -105,9 +175,10 @@ h1 {{ color: #333; }}
 def start_dashboard() -> None:
     """Start the dashboard server in a background thread.
 
-    This is a non-blocking call that spawns a uvicorn server on
-    ``DASHBOARD_PORT``.  It does nothing if DASHBOARD_TOKEN is not
-    configured.
+    .. deprecated::
+        Prefer running the full web application via ``__main__.py``
+        which uses the ASGI lifespan to manage the bot.  This function
+        is kept for backward-compatibility.
     """
     if not DASHBOARD_TOKEN:
         return
@@ -118,7 +189,7 @@ def start_dashboard() -> None:
     app = _get_app()
 
     def _run():
-        uvicorn.run(app, host="127.0.0.1", port=DASHBOARD_PORT, log_level="warning")
+        uvicorn.run(app, host="0.0.0.0", port=DASHBOARD_PORT, log_level="info")
 
     t = threading.Thread(target=_run, daemon=True, name="dashboard")
     t.start()
