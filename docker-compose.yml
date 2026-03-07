@@ -1,0 +1,29 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: url-uploader-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+  bot:
+    build: .
+    container_name: url-uploader-bot
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Override MONGO_URI to point to the companion container
+      MONGO_URI: mongodb://mongo:27017
+    ports:
+      - "${PORT:-8080}:${PORT:-8080}"
+    volumes:
+      - ./downloads:/app/downloads
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:
