@@ -10,6 +10,10 @@ def settings_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton("❌ Del Thumbnail", callback_data="del_thumb"),
             ],
             [
+                InlineKeyboardButton("✏️ Set Caption", callback_data="set_caption"),
+                InlineKeyboardButton("🗑 Del Caption", callback_data="del_caption"),
+            ],
+            [
                 InlineKeyboardButton("🍪 Manage Cookies", callback_data="manage_cookies"),
             ],
             [

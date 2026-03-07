@@ -9,6 +9,7 @@ from bot.database.users import (
     get_daily_usage,
     set_thumbnail,
     set_cookie,
+    set_caption,
 )
 from bot.config import PLAN_LIMITS, DOWNLOAD_DIR
 from bot.helpers.keyboards import (
@@ -100,12 +101,14 @@ async def cb_refresh_settings(_client: Client, cb: CallbackQuery):
     bw_limit = human_bytes(limit["bandwidth"])
     bw_used = human_bytes(usage.get("bandwidth", 0))
     thumb = "✅ Set" if db_user.get("thumbnail") else "❌ Not set"
+    caption = "✅ Set" if db_user.get("caption") else "❌ Not set"
 
     text = (
         "⚙️ **YOUR SETTINGS**\n\n"
         f"👤 **Account Tier:** {plan_display(plan)}\n"
         f"📊 **Today's Usage:** {bw_used} / {bw_limit}\n"
         f"🖼 **Custom Thumbnail:** {thumb}\n"
+        f"✏️ **Custom Caption:** {caption}\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n"
         "Manage your settings using the buttons below."
     )
@@ -125,12 +128,14 @@ async def cb_back_main(_client: Client, cb: CallbackQuery):
     bw_limit = human_bytes(limit["bandwidth"])
     bw_used = human_bytes(usage.get("bandwidth", 0))
     thumb = "✅ Set" if db_user.get("thumbnail") else "❌ Not set"
+    caption = "✅ Set" if db_user.get("caption") else "❌ Not set"
 
     text = (
         "⚙️ **YOUR SETTINGS**\n\n"
         f"👤 **Account Tier:** {plan_display(plan)}\n"
         f"📊 **Today's Usage:** {bw_used} / {bw_limit}\n"
         f"🖼 **Custom Thumbnail:** {thumb}\n"
+        f"✏️ **Custom Caption:** {caption}\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━\n"
         "Manage your settings using the buttons below."
     )
@@ -156,6 +161,26 @@ async def cb_format_select(client: Client, cb: CallbackQuery):
 
     # We need the original message for sending the file back — use the callback message
     await _do_download(client, cb.message, status_msg, url, format_id, cookie_path)
+
+
+# In-memory flag for users awaiting caption input
+_awaiting_caption: set[int] = set()
+
+
+@Client.on_callback_query(filters.regex(r"^set_caption$"))
+async def cb_set_caption(_client: Client, cb: CallbackQuery):
+    await cb.answer()
+    _awaiting_caption.add(cb.from_user.id)
+    await cb.message.reply_text(
+        "✏️ **Send me the caption text** you want to use.\n\n"
+        "You can use `{filename}` as a placeholder for the file name."
+    )
+
+
+@Client.on_callback_query(filters.regex(r"^del_caption$"))
+async def cb_del_caption(_client: Client, cb: CallbackQuery):
+    await set_caption(cb.from_user.id, None)
+    await cb.answer("Caption removed!", show_alert=True)
 
 
 @Client.on_message(filters.document & filters.private)

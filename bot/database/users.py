@@ -26,6 +26,8 @@ async def ensure_user(user_id: int, first_name: str) -> dict:
             "joined": datetime.now(timezone.utc),
             "thumbnail": None,
             "cookie_file_id": None,
+            "caption": None,
+            "banned": False,
             "daily": {
                 "date": _today(),
                 "files": 0,
@@ -95,3 +97,41 @@ async def set_cookie(user_id: int, file_id: str | None) -> None:
         {"_id": user_id},
         {"$set": {"cookie_file_id": file_id}},
     )
+
+
+async def set_caption(user_id: int, caption: str | None) -> None:
+    """Set or clear a user's custom caption template."""
+    await users_col.update_one(
+        {"_id": user_id},
+        {"$set": {"caption": caption}},
+    )
+
+
+async def ban_user(user_id: int) -> None:
+    """Ban a user from using the bot."""
+    await users_col.update_one(
+        {"_id": user_id},
+        {"$set": {"banned": True}},
+    )
+
+
+async def unban_user(user_id: int) -> None:
+    """Un-ban a user."""
+    await users_col.update_one(
+        {"_id": user_id},
+        {"$set": {"banned": False}},
+    )
+
+
+async def is_banned(user_id: int) -> bool:
+    """Check if a user is banned."""
+    user = await get_user(user_id)
+    if user is None:
+        return False
+    return bool(user.get("banned", False))
+
+
+async def get_all_user_ids() -> list[int]:
+    """Return a list of all user IDs in the database."""
+    cursor = users_col.find({}, {"_id": 1})
+    return [doc["_id"] async for doc in cursor]

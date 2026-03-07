@@ -9,11 +9,21 @@ from bot.database.users import (
     get_user,
     get_daily_usage,
     increment_usage,
+    is_banned,
 )
-from bot.config import PLAN_LIMITS, DOWNLOAD_DIR
+from bot.config import (
+    PLAN_LIMITS,
+    DOWNLOAD_DIR,
+    TG_BOT_FILE_LIMIT,
+    TG_USER_FILE_LIMIT,
+    TG_SPLIT_SIZE,
+)
+from bot.client import user_session
 from bot.helpers.downloader import extract_info, build_format_list, download_media
 from bot.helpers.keyboards import quality_keyboard
 from bot.helpers.utils import human_bytes
+from bot.helpers.fsub import check_fsub
+from bot.helpers.split import split_file
 
 # Simple URL regex
 _URL_RE = re.compile(r"https?://\S+")
@@ -24,7 +34,7 @@ pending_urls: dict[int, dict] = {}
 
 @Client.on_message(filters.text & filters.private & ~filters.command(
     ["start", "help", "settings", "myplan", "upgrade", "bulk", "abort",
-     "cookie", "delcookie", "delthumb"]
+     "cookie", "delcookie", "delthumb", "broadcast", "ban", "unban"]
 ))
 async def url_handler(client: Client, message: Message):
     """Handle plain text messages that contain URLs."""
@@ -36,6 +46,13 @@ async def url_handler(client: Client, message: Message):
     url = url_match.group(0)
     user = message.from_user
     await ensure_user(user.id, user.first_name)
+
+    if await is_banned(user.id):
+        return await message.reply_text("🚫 **You are banned from using this bot.**")
+
+    if not await check_fsub(client, message):
+        return
+
     db_user = await get_user(user.id)
     if db_user is None:
         await message.reply_text("❌ An error occurred. Please try /start again.")
@@ -121,41 +138,95 @@ async def _do_download(
 
     db_user = await get_user(user.id)
     thumb_fid = db_user.get("thumbnail") if db_user else None
+    custom_caption = db_user.get("caption") if db_user else None
+    plan = (db_user or {}).get("plan", "free")
 
     thumb_path = None
     if thumb_fid:
         thumb_path = os.path.join(DOWNLOAD_DIR, str(user.id), "thumb.jpg")
         await client.download_media(thumb_fid, file_name=thumb_path)
 
-    try:
-        if file_path.endswith(".mp3"):
-            await client.send_audio(
-                chat_id=message.chat.id,
-                audio=file_path,
-                thumb=thumb_path,
-            )
-        else:
-            await client.send_video(
-                chat_id=message.chat.id,
-                video=file_path,
-                thumb=thumb_path,
-                supports_streaming=True,
-            )
-    except Exception:
-        # Fallback: send as document
-        await client.send_document(
-            chat_id=message.chat.id,
-            document=file_path,
-            thumb=thumb_path,
-        )
+    caption = custom_caption or os.path.basename(file_path)
+
+    # Determine if we need to split the file
+    upload_limit = TG_BOT_FILE_LIMIT
+    uploader = client
+    if user_session and plan in ("basic", "standard", "pro"):
+        upload_limit = TG_USER_FILE_LIMIT
+        uploader = user_session
+
+    files_to_upload: list[str] = [file_path]
+    if file_size > upload_limit:
+        # Leave a 1 MB buffer for Telegram metadata overhead
+        split_chunk = TG_SPLIT_SIZE if uploader == client else TG_USER_FILE_LIMIT - 1024**2
+        files_to_upload = await split_file(file_path, split_chunk)
+
+    for idx, fpath in enumerate(files_to_upload):
+        part_caption = f"{caption} (Part {idx + 1}/{len(files_to_upload)})" if len(files_to_upload) > 1 else caption
+        try:
+            await _upload_file(uploader, message.chat.id, fpath, thumb_path, part_caption)
+        except Exception:
+            # Fallback to bot client if user session fails
+            if uploader != client:
+                try:
+                    await _upload_file(client, message.chat.id, fpath, thumb_path, part_caption)
+                except Exception:
+                    await client.send_document(
+                        chat_id=message.chat.id,
+                        document=fpath,
+                        thumb=thumb_path,
+                        caption=part_caption,
+                    )
+            else:
+                await client.send_document(
+                    chat_id=message.chat.id,
+                    document=fpath,
+                    thumb=thumb_path,
+                    caption=part_caption,
+                )
 
     await increment_usage(user.id, file_size)
     await status_msg.delete()
 
-    # Clean up downloaded file
-    try:
-        os.remove(file_path)
-        if thumb_path and os.path.isfile(thumb_path):
+    # Clean up downloaded files
+    for fpath in files_to_upload:
+        try:
+            os.remove(fpath)
+        except OSError:
+            pass
+    # When splitting occurred the original file differs from the parts
+    if file_path not in files_to_upload:
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass
+    if thumb_path and os.path.isfile(thumb_path):
+        try:
             os.remove(thumb_path)
-    except OSError:
-        pass
+        except OSError:
+            pass
+
+
+async def _upload_file(
+    uploader: Client,
+    chat_id: int,
+    file_path: str,
+    thumb_path: str | None,
+    caption: str,
+) -> None:
+    """Upload a single file as video, audio, or document."""
+    if file_path.endswith(".mp3"):
+        await uploader.send_audio(
+            chat_id=chat_id,
+            audio=file_path,
+            thumb=thumb_path,
+            caption=caption,
+        )
+    else:
+        await uploader.send_video(
+            chat_id=chat_id,
+            video=file_path,
+            thumb=thumb_path,
+            caption=caption,
+            supports_streaming=True,
+        )
