@@ -1,140 +1,183 @@
-# URL Uploader Bot 🚀
+<div align="center">
 
-An advanced, subscription-based Telegram bot for downloading and uploading content from YouTube, Instagram, TikTok, Twitter, and 1500+ more sites — powered by [Pyrogram](https://docs.pyrogram.org/), [yt-dlp](https://github.com/yt-dlp/yt-dlp), [FFmpeg](https://ffmpeg.org/), and [MongoDB](https://www.mongodb.com/).
+# 🚀 URL Uploader Bot
+
+**An advanced, subscription-based Telegram bot for downloading and uploading content from 1500+ sites.**
+
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Pyrogram](https://img.shields.io/badge/Pyrogram-2.0-orange?logo=telegram&logoColor=white)](https://docs.pyrogram.org/)
+[![yt-dlp](https://img.shields.io/badge/yt--dlp-supported-red?logo=youtube&logoColor=white)](https://github.com/yt-dlp/yt-dlp)
+[![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![License](https://img.shields.io/badge/License-Educational-blue)](#license)
+
+[Features](#-features) · [Quick Start](#-quick-start) · [Deployment](#-vps-deployment) · [Commands](#-bot-commands) · [Contributing](#-contributing)
+
+</div>
+
+---
+
+## 📋 Table of Contents
+
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Premium Plans](#-premium-plans)
+- [Quick Start](#-quick-start)
+- [Configuration](#%EF%B8%8F-configuration)
+- [VPS Deployment](#-vps-deployment)
+- [Project Structure](#-project-structure)
+- [Bot Commands](#-bot-commands)
+- [Running Tests](#-running-tests)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ## ✨ Features
 
-- 🔗 **Universal Downloader** — YouTube, Instagram, TikTok, Twitter, Drive, Mega, Mediafire & 1500+ sites via yt-dlp
-- 🎬 Choose exact video quality (1080p, 720p, 480p…)
-- 🎵 Extract audio from any video
-- 🍪 Cookie-based auth for restricted / age-gated content
-- 🖼 Custom thumbnails & captions per user
-- 💎 Premium tiers (Free / Basic / Standard / Pro) with daily limits
-- 📊 Daily file & bandwidth usage tracking via MongoDB
-- 📦 Bulk mode — queue up to 200 links at once (Premium)
-- 📤 4 GB uploads via user session (Premium)
-- ✂️ Auto-split oversized files with FFmpeg
-- 📢 Force-subscribe middleware
-- 🔨 Admin tools — `/broadcast`, `/ban`, `/unban`
+<table>
+<tr>
+<td width="50%">
 
-## 📁 Project Structure
+**🔗 Universal Downloading**
+- YouTube, Instagram, TikTok, Twitter, and 1500+ sites via yt-dlp
+- Exact video quality selection (1080p, 720p, 480p…)
+- Audio extraction from any video
+- Cookie-based auth for restricted / age-gated content
 
-```
-URL-uploader/
-├── bot/
-│   ├── __init__.py
-│   ├── __main__.py          # Entry point
-│   ├── client.py             # Pyrogram bot + user session clients
-│   ├── config.py             # Configuration (env vars)
-│   ├── database/
-│   │   ├── __init__.py
-│   │   └── users.py          # MongoDB user operations
-│   ├── handlers/
-│   │   ├── __init__.py
-│   │   ├── start.py          # /start command
-│   │   ├── help.py           # /help command
-│   │   ├── settings.py       # /settings command
-│   │   ├── myplan.py         # /myplan command
-│   │   ├── upgrade.py        # /upgrade command
-│   │   ├── bulk.py           # /bulk and /abort commands (asyncio.Queue)
-│   │   ├── cookie.py         # /cookie and /delcookie commands
-│   │   ├── thumbnail.py      # Photo thumbnail + /delthumb
-│   │   ├── admin.py          # /broadcast, /ban, /unban (admin only)
-│   │   ├── url_handler.py    # URL processing, download & upload
-│   │   └── callbacks.py      # Inline-button callback handler
-│   └── helpers/
-│       ├── __init__.py
-│       ├── downloader.py     # yt-dlp download logic
-│       ├── keyboards.py      # Inline keyboard layouts
-│       ├── fsub.py           # Force-subscribe check
-│       ├── split.py          # FFmpeg auto-split for large files
-│       └── utils.py          # Utility functions
-├── tests/
-│   ├── __init__.py
-│   ├── test_config.py
-│   ├── test_downloader.py
-│   ├── test_keyboards.py
-│   └── test_utils.py
-├── .env.example
-├── .gitignore
-├── requirements.txt
-└── README.md
-```
+</td>
+<td width="50%">
 
-## 🛠 Setup & Run
+**📤 Smart Uploading**
+- Up to 4 GB uploads via user session (Premium)
+- Custom thumbnails & captions per user
+- Auto-split oversized files with FFmpeg
+- Progress tracking during upload
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**💎 Subscription System**
+- Four premium tiers with daily limits
+- Daily file & bandwidth usage tracking via MongoDB
+- Bulk mode — queue up to 200 links at once (Premium)
+
+</td>
+<td width="50%">
+
+**🔧 Administration**
+- `/broadcast`, `/ban`, `/unban` admin commands
+- Force-subscribe middleware
+- Log channel for monitoring downloads
+- User management via MongoDB
+
+</td>
+</tr>
+</table>
+
+## 🛠 Tech Stack
+
+| Technology | Purpose |
+|:-----------|:--------|
+| [Pyrogram](https://docs.pyrogram.org/) | Telegram MTProto API framework |
+| [yt-dlp](https://github.com/yt-dlp/yt-dlp) | Universal video/audio downloader |
+| [FFmpeg](https://ffmpeg.org/) | Media processing & file splitting |
+| [MongoDB](https://www.mongodb.com/) + [Motor](https://motor.readthedocs.io/) | Async database for users & usage tracking |
+| [aiohttp](https://docs.aiohttp.org/) | Async HTTP client |
+| [python-dotenv](https://github.com/theskumar/python-dotenv) | Environment variable management |
+
+## 💎 Premium Plans
+
+| Feature | Free | Basic | Standard | Pro |
+|:--------|:----:|:-----:|:--------:|:---:|
+| Daily Files | 10 | 50 | 100 | ∞ |
+| Daily Bandwidth | 2 GB | 10 GB | 30 GB | ∞ |
+| Bulk Upload | ❌ | ✅ | ✅ | ✅ |
+| 4 GB Uploads | ❌ | ✅ | ✅ | ✅ |
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.10+
-- MongoDB (local or [MongoDB Atlas](https://www.mongodb.com/atlas))
-- FFmpeg installed and in your PATH
-- A Telegram Bot Token from [@BotFather](https://t.me/BotFather)
-- Telegram API credentials from [my.telegram.org](https://my.telegram.org)
+| Requirement | Details |
+|:------------|:--------|
+| **Python** | 3.10 or higher |
+| **MongoDB** | Local instance or [MongoDB Atlas](https://www.mongodb.com/atlas) (free tier available) |
+| **FFmpeg** | Installed and available in your `PATH` |
+| **Bot Token** | Obtain from [@BotFather](https://t.me/BotFather) |
+| **API Credentials** | Obtain from [my.telegram.org](https://my.telegram.org) |
 
-### Step-by-step
+### Installation
 
-1. **Clone the repository**
+```bash
+# Clone the repository
+git clone https://github.com/tawhid120/URL-uploader.git
+cd URL-uploader
 
-   ```bash
-   git clone https://github.com/tawhid120/URL-uploader.git
-   cd URL-uploader
-   ```
+# Create a virtual environment and install dependencies
+python -m venv venv
+source venv/bin/activate   # Linux / macOS
+# venv\Scripts\activate    # Windows
+pip install -r requirements.txt
 
-2. **Create a virtual environment and install dependencies**
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your credentials (see Configuration section below)
 
-   ```bash
-   python -m venv venv
-   source venv/bin/activate   # Linux / macOS
-   # venv\Scripts\activate    # Windows
-   pip install -r requirements.txt
-   ```
+# Run the bot
+python -m bot
+```
 
-3. **Configure environment variables**
+## ⚙️ Configuration
 
-   ```bash
-   cp .env.example .env
-   ```
+Copy `.env.example` to `.env` and fill in the values:
 
-   Edit `.env` and fill in your credentials:
+| Variable | Required | Default | Description |
+|:---------|:--------:|:--------|:------------|
+| `API_ID` | ✅ | — | Telegram API ID from [my.telegram.org](https://my.telegram.org) |
+| `API_HASH` | ✅ | — | Telegram API hash from [my.telegram.org](https://my.telegram.org) |
+| `BOT_TOKEN` | ✅ | — | Bot token from [@BotFather](https://t.me/BotFather) |
+| `MONGO_URI` | ✅ | `mongodb://localhost:27017` | MongoDB connection string |
+| `DB_NAME` | ❌ | `url_uploader_bot` | MongoDB database name |
+| `SESSION_STR` | ❌ | — | Pyrogram user session string for 4 GB uploads |
+| `LOG_CHANNEL` | ❌ | `0` | Telegram channel ID for download logging |
+| `FSUB_CHANNEL` | ❌ | — | Force-subscribe channel (username without `@`, or channel ID) |
+| `ADMIN_IDS` | ❌ | — | Comma-separated admin user IDs (e.g. `123456789,987654321`) |
 
-   ```
-   API_ID=12345
-   API_HASH=abcdef1234567890abcdef1234567890
-   BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
-   MONGO_URI=mongodb://localhost:27017
-   DB_NAME=url_uploader_bot
-   LOG_CHANNEL=0
+<details>
+<summary><b>Example <code>.env</code> file</b></summary>
 
-   # Optional — for 4 GB uploads via user session
-   SESSION_STR=
+```env
+API_ID=12345
+API_HASH=abcdef1234567890abcdef1234567890
+BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+MONGO_URI=mongodb://localhost:27017
+DB_NAME=url_uploader_bot
+LOG_CHANNEL=0
 
-   # Optional — force-subscribe channel (username without @)
-   FSUB_CHANNEL=
+# Optional — for 4 GB uploads via user session
+SESSION_STR=
 
-   # Admin user IDs (comma-separated)
-   ADMIN_IDS=123456789
-   ```
+# Optional — force-subscribe channel (username without @)
+FSUB_CHANNEL=
 
-4. **Run the bot**
+# Admin user IDs (comma-separated)
+ADMIN_IDS=123456789
+```
 
-   ```bash
-   python -m bot
-   ```
+</details>
 
-## 🚀 VPS Deployment Guide
+## 🌐 VPS Deployment
 
-### 1. Provision a VPS
+> **Recommended:** 1 vCPU / 1 GB RAM instance (DigitalOcean, Hetzner, Contabo, etc.)
 
-Use any provider (e.g. DigitalOcean, Hetzner, Contabo). A 1 vCPU / 1 GB RAM instance is sufficient for light usage.
-
-### 2. Install system dependencies
+### 1. Install system dependencies
 
 ```bash
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y python3 python3-pip python3-venv ffmpeg git
 ```
 
-### 3. Install & start MongoDB
+### 2. Install & start MongoDB
 
 ```bash
 sudo apt install -y gnupg curl
@@ -147,9 +190,9 @@ sudo apt update && sudo apt install -y mongodb-org
 sudo systemctl enable --now mongod
 ```
 
-Or use **MongoDB Atlas** (free tier) and set `MONGO_URI` accordingly.
+> **Alternative:** Use [MongoDB Atlas](https://www.mongodb.com/atlas) (free tier) and set `MONGO_URI` accordingly.
 
-### 4. Clone, configure & run
+### 3. Clone, configure & run
 
 ```bash
 git clone https://github.com/tawhid120/URL-uploader.git
@@ -161,7 +204,7 @@ nano .env   # fill in your credentials
 python -m bot
 ```
 
-### 5. Keep the bot running with systemd
+### 4. Keep the bot running with systemd
 
 Create `/etc/systemd/system/url-uploader.service`:
 
@@ -189,31 +232,99 @@ sudo systemctl enable --now url-uploader
 sudo systemctl status url-uploader
 ```
 
-View logs with:
+<details>
+<summary><b>View logs</b></summary>
 
 ```bash
 sudo journalctl -u url-uploader -f
 ```
 
+</details>
+
+## 📁 Project Structure
+
+```
+URL-uploader/
+├── bot/
+│   ├── __init__.py
+│   ├── __main__.py              # Entry point
+│   ├── client.py                # Pyrogram bot + user session clients
+│   ├── config.py                # Configuration (env vars & plan limits)
+│   ├── database/
+│   │   ├── __init__.py
+│   │   └── users.py             # MongoDB user operations
+│   ├── handlers/
+│   │   ├── __init__.py
+│   │   ├── admin.py             # /broadcast, /ban, /unban (admin only)
+│   │   ├── bulk.py              # /bulk and /abort commands
+│   │   ├── callbacks.py         # Inline-button callback handler
+│   │   ├── cookie.py            # /cookie and /delcookie commands
+│   │   ├── help.py              # /help command
+│   │   ├── myplan.py            # /myplan command
+│   │   ├── settings.py          # /settings command
+│   │   ├── start.py             # /start command
+│   │   ├── thumbnail.py         # Photo thumbnail + /delthumb
+│   │   ├── upgrade.py           # /upgrade command
+│   │   └── url_handler.py       # URL processing, download & upload
+│   └── helpers/
+│       ├── __init__.py
+│       ├── downloader.py        # yt-dlp download logic
+│       ├── fsub.py              # Force-subscribe check
+│       ├── keyboards.py         # Inline keyboard layouts
+│       ├── split.py             # FFmpeg auto-split for large files
+│       └── utils.py             # Utility functions
+├── tests/                       # Test suite
+├── .env.example                 # Sample environment config
+├── .gitignore
+├── requirements.txt
+└── README.md
+```
+
 ## 🤖 Bot Commands
 
+### User Commands
+
 | Command | Description |
-|---|---|
-| `/start` | Initialize the bot |
+|:--------|:------------|
+| `/start` | Initialize the bot and register your account |
 | `/help` | Show the user guide |
 | `/settings` | Manage preferences (thumbnail, caption, cookies) |
-| `/myplan` | View usage statistics |
-| `/upgrade` | Browse premium plans |
-| `/bulk` | Batch upload up to 200 links (premium) |
-| `/abort` | Stop an active bulk process |
-| `/cookie` | Manage login cookies |
-| `/delcookie` | Delete saved cookies |
-| `/delthumb` | Remove custom thumbnail |
-| 📸 Send a photo | Set custom thumbnail |
-| 🔗 Send a URL | Download & upload content |
-| `/broadcast` | Send a message to all users (admin) |
-| `/ban <user_id>` | Ban a user (admin) |
-| `/unban <user_id>` | Unban a user (admin) |
+| `/myplan` | View your current plan and daily usage statistics |
+| `/upgrade` | Browse available premium plans |
+| `/bulk` | Batch upload up to 200 links at once (Premium) |
+| `/abort` | Stop an active bulk upload process |
+| `/cookie` | Upload login cookies for restricted content |
+| `/delcookie` | Delete your saved cookies |
+| `/delthumb` | Remove your custom thumbnail |
+| 📸 *Send a photo* | Set a custom thumbnail for uploads |
+| 🔗 *Send a URL* | Download and upload content to Telegram |
+
+### Admin Commands
+
+| Command | Description |
+|:--------|:------------|
+| `/broadcast` | Send a message to all registered users |
+| `/ban <user_id>` | Ban a user from using the bot |
+| `/unban <user_id>` | Unban a previously banned user |
+
+## 🧪 Running Tests
+
+```bash
+pip install pytest
+python -m pytest tests/ -v
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+Please make sure your code passes all existing tests before submitting.
 
 ## 📄 License
 
