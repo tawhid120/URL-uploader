@@ -157,6 +157,7 @@ async def _do_download(
 
     files_to_upload: list[str] = [file_path]
     if file_size > upload_limit:
+        # Leave a 1 MB buffer for Telegram metadata overhead
         split_chunk = TG_SPLIT_SIZE if uploader == client else TG_USER_FILE_LIMIT - 1024**2
         files_to_upload = await split_file(file_path, split_chunk)
 
@@ -193,6 +194,7 @@ async def _do_download(
             os.remove(fpath)
         except OSError:
             pass
+    # When splitting occurred the original file differs from the parts
     if file_path not in files_to_upload:
         try:
             os.remove(file_path)

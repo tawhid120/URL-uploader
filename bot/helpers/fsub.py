@@ -16,13 +16,12 @@ async def check_fsub(client: Client, message: Message) -> bool:
         return True
 
     try:
-        channel = FSUB_CHANNEL
-        if channel.lstrip("-").isdigit():
-            channel = int(channel)
+        channel = int(FSUB_CHANNEL) if FSUB_CHANNEL.lstrip("-").isdigit() else FSUB_CHANNEL
+        is_numeric = isinstance(channel, int)
         await client.get_chat_member(channel, message.from_user.id)
         return True
     except UserNotParticipant:
-        invite = f"https://t.me/{FSUB_CHANNEL}" if not str(FSUB_CHANNEL).lstrip("-").isdigit() else None
+        invite = f"https://t.me/{FSUB_CHANNEL}" if not is_numeric else None
         buttons = []
         if invite:
             buttons.append([InlineKeyboardButton("📢 Join Channel", url=invite)])

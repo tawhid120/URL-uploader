@@ -24,6 +24,7 @@ _bulk_queues: dict[int, asyncio.Queue] = {}
 _bulk_abort: dict[int, bool] = {}
 
 MAX_BULK_LINKS = 200
+PROGRESS_UPDATE_INTERVAL = 3
 
 
 @Client.on_message(filters.command("bulk") & filters.private)
@@ -134,8 +135,8 @@ async def bulk_handler(client: Client, message: Message):
         except Exception:
             failed += 1
 
-        # Update progress every 3 items or at the end
-        if done % 3 == 0 or queue.empty():
+        # Update progress periodically or at the end
+        if done % PROGRESS_UPDATE_INTERVAL == 0 or queue.empty():
             try:
                 await progress_msg.edit_text(
                     f"📦 **Bulk Mode**\n"
