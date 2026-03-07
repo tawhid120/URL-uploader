@@ -274,7 +274,7 @@ git push heroku main
 heroku logs --tail
 ```
 
-> **Note:** Heroku's free tier has been discontinued. The Eco plan ($5/month) provides 1000 dyno hours per month.
+> **Note:** Heroku's free tier has been discontinued. Paid plans start at the Eco tier. Check [Heroku's pricing page](https://www.heroku.com/pricing) for current details.
 
 ---
 
@@ -300,7 +300,7 @@ Render uses the included `render.yaml` blueprint for automatic configuration. It
    | `MONGO_URI` | Your MongoDB Atlas connection string |
 5. Click **Create Web Service**
 
-> **Tip:** Render's free tier spins down after 15 minutes of inactivity. Use the Starter plan ($7/month) for always-on deployment, or set up an external cron ping to keep the free instance alive.
+> **Tip:** Render's free tier spins down after inactivity. Use a paid plan for always-on deployment, or set up an external cron ping to keep the free instance alive. See [Render's pricing page](https://render.com/pricing) for current plans.
 
 ---
 
@@ -310,7 +310,7 @@ Railway uses the included `railway.toml` for build and deploy configuration. It 
 
 **One-Click Deploy:**
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/template?referralCode=tawhid120)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/tawhid120/URL-uploader)
 
 **Manual Setup:**
 
@@ -341,7 +341,7 @@ railway link
 railway up
 ```
 
-> **Tip:** Railway provides $5 of free credits per month. The Hobby plan ($5/month) includes 8 GB RAM and 8 vCPUs — more than enough for this bot.
+> **Tip:** Railway offers a free trial with credits to get started. Check [Railway's pricing page](https://railway.com/pricing) for current plans and limits.
 
 ---
 
@@ -385,7 +385,7 @@ koyeb app create url-uploader-bot \
   --route /:8080
 ```
 
-> **Tip:** Koyeb's free tier includes one Eco instance with 512 MB RAM — suitable for running this bot 24/7.
+> **Tip:** Koyeb offers a free tier suitable for running this bot. Check [Koyeb's pricing page](https://www.koyeb.com/pricing) for current details.
 
 ---
 
@@ -393,7 +393,7 @@ koyeb app create url-uploader-bot \
 
 | Feature | Heroku | Render | Railway | Koyeb |
 |:--------|:------:|:------:|:-------:|:-----:|
-| **Free Tier** | ❌ (Eco $5/mo) | ✅ (spins down) | ✅ ($5 credit) | ✅ (Eco instance) |
+| **Free Tier** | ❌ (paid only) | ✅ (spins down) | ✅ (with credits) | ✅ (Eco instance) |
 | **Always On (Free)** | — | ❌ | ✅ | ✅ |
 | **Docker Support** | ✅ | ✅ | ✅ | ✅ |
 | **Auto Deploy on Push** | ✅ | ✅ | ✅ | ✅ |
