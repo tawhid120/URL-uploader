@@ -23,6 +23,11 @@ logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     logger.info("Starting URL Uploader Bot…")
+
+    # Start the optional admin web dashboard
+    from bot.dashboard import start_dashboard
+    start_dashboard()
+
     if user_session:
         logger.info("User session detected — 4 GB uploads enabled.")
         user_session.start()

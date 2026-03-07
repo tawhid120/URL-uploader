@@ -24,6 +24,10 @@ from bot.helpers.keyboards import quality_keyboard
 from bot.helpers.utils import human_bytes
 from bot.helpers.fsub import check_fsub
 from bot.helpers.split import split_file
+from bot.helpers.thumbnail import generate_thumbnail
+from bot.helpers.torrent import is_torrent_or_magnet, download_torrent
+from bot.helpers.playlist import download_playlist, is_playlist_url
+from bot.helpers.zipper import create_zip
 
 # Simple URL regex
 _URL_RE = re.compile(r"https?://\S+")
@@ -78,6 +82,27 @@ async def url_handler(client: Client, message: Message):
 
     status_msg = await message.reply_text("🔍 **Fetching info…** Please wait.")
 
+    # ---- Torrent / Magnet shortcut ----
+    if is_torrent_or_magnet(url):
+        await status_msg.edit_text("🧲 **Downloading torrent…** This may take a while.")
+        files = await download_torrent(url, user.id)
+        if not files:
+            return await status_msg.edit_text("❌ **Torrent download failed.**\nMake sure `aria2c` is installed.")
+        total_size = sum(os.path.getsize(f) for f in files)
+        for fpath in files:
+            try:
+                await client.send_document(chat_id=message.chat.id, document=fpath)
+            except Exception:
+                pass
+        await increment_usage(user.id, total_size)
+        await status_msg.delete()
+        for fpath in files:
+            try:
+                os.remove(fpath)
+            except OSError:
+                pass
+        return
+
     # Resolve cookie path
     cookie_path = None
     cookie_fid = db_user.get("cookie_file_id")
@@ -90,6 +115,38 @@ async def url_handler(client: Client, message: Message):
         info = await extract_info(url, cookie_path)
     except Exception as exc:
         await status_msg.edit_text(f"❌ **Failed to fetch info:**\n`{exc}`")
+        return
+
+    # ---- Playlist / gallery → ZIP ----
+    if is_playlist_url(info):
+        await status_msg.edit_text("📦 **Downloading playlist…** Please wait.")
+        try:
+            files = await download_playlist(url, cookie_path, user.id)
+        except Exception as exc:
+            return await status_msg.edit_text(f"❌ **Playlist download failed:**\n`{exc}`")
+        if not files:
+            return await status_msg.edit_text("❌ **No files downloaded from playlist.**")
+        title = info.get("title", "playlist")
+        zip_path = os.path.join(DOWNLOAD_DIR, str(user.id), f"{title[:50]}.zip")
+        create_zip(files, zip_path)
+        zip_size = os.path.getsize(zip_path)
+        await status_msg.edit_text(f"📤 **Uploading ZIP** ({human_bytes(zip_size)})")
+        try:
+            await client.send_document(chat_id=message.chat.id, document=zip_path, caption=f"📦 {title}")
+        except Exception as exc:
+            await status_msg.edit_text(f"❌ **Upload failed:**\n`{exc}`")
+        else:
+            await increment_usage(user.id, zip_size)
+            await status_msg.delete()
+        for fpath in files:
+            try:
+                os.remove(fpath)
+            except OSError:
+                pass
+        try:
+            os.remove(zip_path)
+        except OSError:
+            pass
         return
 
     title = info.get("title", "Unknown")
@@ -145,6 +202,9 @@ async def _do_download(
     if thumb_fid:
         thumb_path = os.path.join(DOWNLOAD_DIR, str(user.id), "thumb.jpg")
         await client.download_media(thumb_fid, file_name=thumb_path)
+    elif file_path.endswith((".mp4", ".mkv", ".webm", ".avi", ".mov", ".flv")):
+        # Auto-generate thumbnail from video when user hasn't set one
+        thumb_path = await generate_thumbnail(file_path)
 
     caption = custom_caption or os.path.basename(file_path)
 

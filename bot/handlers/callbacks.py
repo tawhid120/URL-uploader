@@ -19,6 +19,7 @@ from bot.helpers.keyboards import (
 )
 from bot.helpers.utils import human_bytes, plan_display
 from bot.handlers.url_handler import pending_urls, _do_download
+from bot.helpers.cookie_validator import validate_cookies
 
 
 @Client.on_callback_query(filters.regex(r"^set_thumb$"))
@@ -190,9 +191,32 @@ async def document_handler(client: Client, message):
     if file_name.endswith(".txt"):
         user = message.from_user
         await ensure_user(user.id, user.first_name)
-        # Save the document file_id as the user's cookie
+
+        # Download temporarily to validate
+        tmp_path = os.path.join(DOWNLOAD_DIR, str(user.id), "cookies_tmp.txt")
+        os.makedirs(os.path.dirname(tmp_path), exist_ok=True)
+        await client.download_media(message.document.file_id, file_name=tmp_path)
+
+        status = await message.reply_text("🔍 **Validating cookie…** Please wait.")
+        valid = await validate_cookies(tmp_path)
+
+        # Clean up temp file
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+
+        if not valid:
+            await status.edit_text(
+                "❌ **Cookie validation failed!**\n"
+                "The cookie file appears to be invalid or expired.\n"
+                "Please export a fresh cookie and try again."
+            )
+            return
+
+        # Cookie is valid — save it
         await set_cookie(user.id, message.document.file_id)
-        await message.reply_text("✅ **Cookie file saved!** It will be used for future downloads.")
+        await status.edit_text("✅ **Cookie file saved!** Validation passed — it will be used for future downloads.")
     else:
         await message.reply_text(
             "📄 Please send a **.txt** file (Netscape cookie format)."

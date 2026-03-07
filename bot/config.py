@@ -44,3 +44,7 @@ TG_SPLIT_SIZE = 2 * 1024**3 - 1024**2  # ~1.999 GB safe split chunk
 # Download directory
 DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "downloads")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+
+# Web Dashboard settings
+DASHBOARD_PORT = int(os.environ.get("DASHBOARD_PORT", 8080))
+DASHBOARD_TOKEN = os.environ.get("DASHBOARD_TOKEN", "")
