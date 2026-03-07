@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: url-uploader-bot
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: API_ID
+        sync: false
+      - key: API_HASH
+        sync: false
+      - key: BOT_TOKEN
+        sync: false
+      - key: MONGO_URI
+        sync: false
+      - key: SESSION_STR
+        sync: false
+      - key: LOG_CHANNEL
+        sync: false
+      - key: FSUB_CHANNEL
+        sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: DASHBOARD_TOKEN
+        sync: false

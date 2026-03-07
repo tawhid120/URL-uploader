@@ -38,9 +38,14 @@ thumbnails/
 tests/
 .pytest_cache/
 
-# Docker
+# Docker & deployment configs
 Dockerfile
 docker-compose.yml
+render.yaml
+railway.toml
+heroku.yml
+app.json
+Procfile
 
 # Docs
 README.md
