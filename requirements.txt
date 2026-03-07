@@ -6,3 +6,5 @@ aiohttp==3.13.3
 aiofiles==23.2.1
 python-dotenv==1.0.1
 humanize==4.9.0
+fastapi==0.115.12
+uvicorn==0.34.3
