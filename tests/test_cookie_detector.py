@@ -81,6 +81,13 @@ class TestParseCookieFile:
         text = "only\ttwo\tfields\n"
         assert parse_cookie_file(text) == []
 
+    def test_country_code_tld(self):
+        """Domains like .bbc.co.uk should resolve correctly."""
+        text = ".bbc.co.uk\tTRUE\t/\tTRUE\t0\tck\tval\n"
+        domains = parse_cookie_file(text)
+        assert "bbc.co.uk" in domains
+        assert "co.uk" not in domains
+
 
 class TestDetectCookies:
     """Tests for detect_cookies()."""

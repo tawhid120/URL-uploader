@@ -47,21 +47,46 @@ _DOMAIN_LABELS: dict[str, str] = {
 }
 
 
+_SECOND_LEVEL_TLDS: frozenset[str] = frozenset({
+    "co.uk", "org.uk", "me.uk", "ac.uk",
+    "com.au", "net.au", "org.au",
+    "co.nz", "net.nz", "org.nz",
+    "co.in", "net.in", "org.in",
+    "co.jp", "or.jp", "ne.jp",
+    "co.kr", "or.kr",
+    "com.br", "org.br", "net.br",
+    "co.za", "org.za", "net.za",
+    "com.tr", "org.tr",
+    "co.id", "or.id",
+    "com.mx", "org.mx",
+    "com.sg", "org.sg",
+    "co.il",
+    "com.tw", "org.tw",
+    "co.th", "or.th",
+})
+
+
 def _root_domain(domain: str) -> str:
     """Return the registrable (root) domain from a cookie domain string.
 
     Cookie domains may start with a leading dot (e.g. ``.youtube.com``).
-    This helper strips that prefix and returns the last two labels
-    (or the full domain when it has only two labels).
+    This helper strips that prefix and returns the registrable domain,
+    handling common country-code second-level TLDs (e.g. ``.co.uk``).
 
     >>> _root_domain(".accounts.google.com")
     'google.com'
     >>> _root_domain("youtu.be")
     'youtu.be'
+    >>> _root_domain(".bbc.co.uk")
+    'bbc.co.uk'
     """
     domain = domain.lstrip(".").lower().strip()
     parts = domain.split(".")
     if len(parts) > 2:
+        # Check for two-part TLDs like co.uk, com.au
+        two_part = ".".join(parts[-2:])
+        if two_part in _SECOND_LEVEL_TLDS and len(parts) > 2:
+            return ".".join(parts[-3:])
         return ".".join(parts[-2:])
     return domain
 

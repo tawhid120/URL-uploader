@@ -202,7 +202,7 @@ async def document_handler(client: Client, message):
 
         # --- Smart Cookie Auto-Detection ---
         try:
-            with open(tmp_path, "r", errors="ignore") as fh:
+            with open(tmp_path, "r", encoding="utf-8", errors="replace") as fh:
                 cookie_text = fh.read()
         except OSError:
             cookie_text = ""
