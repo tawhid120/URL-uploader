@@ -20,6 +20,7 @@ from bot.helpers.keyboards import (
 from bot.helpers.utils import human_bytes, plan_display
 from bot.handlers.url_handler import pending_urls, _do_download
 from bot.helpers.cookie_validator import validate_cookies
+from bot.helpers.cookie_detector import detect_cookies, format_detected_cookies
 
 
 @Client.on_callback_query(filters.regex(r"^set_thumb$"))
@@ -198,6 +199,16 @@ async def document_handler(client: Client, message):
         await client.download_media(message.document.file_id, file_name=tmp_path)
 
         status = await message.reply_text("🔍 **Validating cookie…** Please wait.")
+
+        # --- Smart Cookie Auto-Detection ---
+        try:
+            with open(tmp_path, "r", errors="ignore") as fh:
+                cookie_text = fh.read()
+        except OSError:
+            cookie_text = ""
+
+        detection = detect_cookies(cookie_text)
+
         valid = await validate_cookies(tmp_path)
 
         # Clean up temp file
@@ -214,9 +225,13 @@ async def document_handler(client: Client, message):
             )
             return
 
-        # Cookie is valid — save it
-        await set_cookie(user.id, message.document.file_id)
-        await status.edit_text("✅ **Cookie file saved!** Validation passed — it will be used for future downloads.")
+        # Cookie is valid — save it with detected domains
+        await set_cookie(user.id, message.document.file_id, detection["domains"])
+        detection_msg = format_detected_cookies(detection)
+        await status.edit_text(
+            "✅ **Cookie file saved!** Validation passed.\n\n"
+            f"{detection_msg}"
+        )
     else:
         await message.reply_text(
             "📄 Please send a **.txt** file (Netscape cookie format)."
