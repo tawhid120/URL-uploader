@@ -1,0 +1,43 @@
+{
+  "name": "URL Uploader Bot",
+  "description": "Telegram bot that downloads files from URLs and uploads them to Telegram chats.",
+  "stack": "container",
+  "env": {
+    "API_ID": {
+      "description": "Telegram API ID from https://my.telegram.org",
+      "required": true
+    },
+    "API_HASH": {
+      "description": "Telegram API Hash from https://my.telegram.org",
+      "required": true
+    },
+    "BOT_TOKEN": {
+      "description": "Telegram Bot Token from @BotFather",
+      "required": true
+    },
+    "MONGO_URI": {
+      "description": "MongoDB connection URI (e.g. mongodb+srv://user:pass@cluster.mongodb.net)",
+      "required": true
+    },
+    "SESSION_STR": {
+      "description": "Pyrogram user session string for 4 GB uploads (optional)",
+      "required": false
+    },
+    "LOG_CHANNEL": {
+      "description": "Telegram channel/group ID for logging (optional)",
+      "required": false
+    },
+    "FSUB_CHANNEL": {
+      "description": "Force-subscribe channel username without @ (optional)",
+      "required": false
+    },
+    "ADMIN_IDS": {
+      "description": "Comma-separated Telegram user IDs for admin access (optional)",
+      "required": false
+    },
+    "DASHBOARD_TOKEN": {
+      "description": "Secret token protecting the web dashboard (optional)",
+      "required": false
+    }
+  }
+}
