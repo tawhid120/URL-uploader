@@ -2,7 +2,7 @@
 
 # 🚀 URL Uploader Bot
 
-### An advanced, subscription-based Telegram bot for downloading and uploading content from 1500+ sites.
+### A production-ready, subscription-based Telegram bot for downloading and uploading content from 1500+ sites.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Pyrogram](https://img.shields.io/badge/Pyrogram-2.0-orange?style=for-the-badge&logo=telegram&logoColor=white)](https://docs.pyrogram.org/)
@@ -27,9 +27,17 @@
 
 ---
 
+## 📖 Overview
+
+URL Uploader Bot is a self-hosted Telegram bot that lets users paste a URL and receive the downloaded content directly in their Telegram chat. It supports **1500+ websites** through [yt-dlp](https://github.com/yt-dlp/yt-dlp), including YouTube, Instagram, TikTok, Twitter/X, Reddit, and more. The bot features a **tiered subscription system** with configurable daily limits, a **FastAPI admin dashboard** for monitoring, and out-of-the-box Docker support for one-command deployment on any cloud platform.
+
+---
+
 ## 📋 Table of Contents
 
+- [Overview](#-overview)
 - [Features](#-features)
+- [Architecture](#-architecture)
 - [Tech Stack](#-tech-stack)
 - [Premium Plans](#-premium-plans)
 - [Quick Start](#-quick-start)
@@ -41,9 +49,12 @@
   - [Railway](#-railway)
   - [Koyeb](#-koyeb)
 - [VPS Deployment](#-vps-deployment)
+- [Web Dashboard](#-web-dashboard)
 - [Project Structure](#-project-structure)
 - [Bot Commands](#-bot-commands)
 - [Running Tests](#-running-tests)
+- [Security](#-security)
+- [Troubleshooting](#-troubleshooting)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -90,6 +101,27 @@
 </td>
 </tr>
 </table>
+
+## 🏗 Architecture
+
+```mermaid
+flowchart LR
+    User([Telegram User]) -- sends URL --> Bot
+    subgraph Server ["Application Server"]
+        Bot["Pyrogram Bot"]
+        Dashboard["FastAPI Dashboard"]
+        Bot <--> DB[(MongoDB)]
+        Dashboard <--> DB
+    end
+    Bot -- "downloads via" --> ytdlp["yt-dlp / aiohttp"]
+    ytdlp -- file --> FFmpeg["FFmpeg"]
+    FFmpeg -- "split / process" --> Bot
+    Bot -- "uploads file" --> TG["Telegram API"]
+    TG -- file --> User
+    Admin([Admin]) -- "HTTP (token)" --> Dashboard
+```
+
+> **How it works:** The application runs as a single process — **uvicorn** serves the FastAPI web dashboard while the Pyrogram Telegram bot starts and stops via the ASGI lifespan. This architecture lets the bot be deployed on any cloud platform that expects an HTTP server bound to a `PORT`.
 
 ## 🛠 Tech Stack
 
@@ -159,6 +191,9 @@ Copy `.env.example` to `.env` and fill in the values:
 | `LOG_CHANNEL` | ❌ | `0` | Telegram channel ID for download logging |
 | `FSUB_CHANNEL` | ❌ | — | Force-subscribe channel (username without `@`, or channel ID) |
 | `ADMIN_IDS` | ❌ | — | Comma-separated admin user IDs (e.g. `123456789,987654321`) |
+| `DASHBOARD_PORT` | ❌ | `8080` | Port for the admin web dashboard |
+| `DASHBOARD_TOKEN` | ❌ | — | Secret token to protect the web dashboard (see [Web Dashboard](#-web-dashboard)) |
+| `PORT` | ❌ | `DASHBOARD_PORT` | HTTP port (auto-set by cloud platforms like Render, Railway, Heroku) |
 
 <details>
 <summary><b>Example <code>.env</code> file</b></summary>
@@ -179,6 +214,10 @@ FSUB_CHANNEL=
 
 # Admin user IDs (comma-separated)
 ADMIN_IDS=123456789
+
+# Optional — web dashboard secret token (generate with: python -c "import secrets; print(secrets.token_urlsafe())")
+DASHBOARD_TOKEN=
+DASHBOARD_PORT=8080
 ```
 
 </details>
@@ -478,6 +517,31 @@ sudo journalctl -u url-uploader -f
 
 </details>
 
+## 🖥 Web Dashboard
+
+The bot includes a built-in **FastAPI admin dashboard** for monitoring and user management. The dashboard is served on the same port as the bot's HTTP server.
+
+### Enabling the Dashboard
+
+Set the `DASHBOARD_TOKEN` environment variable to a secret string. Without this token the dashboard endpoints return `403 Forbidden`.
+
+```bash
+# Generate a secure token
+python -c "import secrets; print(secrets.token_urlsafe())"
+```
+
+### Endpoints
+
+| Method | Path | Auth | Description |
+|:-------|:-----|:----:|:------------|
+| `GET` | `/health` | ❌ | Health-check endpoint (used by platform probes) |
+| `GET` | `/?token=<TOKEN>` | ✅ | Admin dashboard — user counts, daily stats |
+| `GET` | `/logs?token=<TOKEN>` | ✅ | Recent bot log lines (last 200 by default, up to 1 000) |
+| `POST` | `/ban?token=<TOKEN>&user_id=<ID>` | ✅ | Ban a user |
+| `POST` | `/unban?token=<TOKEN>&user_id=<ID>` | ✅ | Unban a user |
+
+> **Tip:** The dashboard is automatically available on all cloud deployments. Access it at `https://your-app-url/?token=YOUR_TOKEN`.
+
 ## 📁 Project Structure
 
 ```
@@ -564,6 +628,63 @@ pip install pytest
 python -m pytest tests/ -v
 ```
 
+## 🔒 Security
+
+Follow these best practices when deploying the bot:
+
+| Practice | Details |
+|:---------|:--------|
+| **Protect the dashboard** | Always set a strong, random `DASHBOARD_TOKEN`. Without it, the dashboard is disabled by default. |
+| **Use environment variables** | Never commit `.env` files, API keys, or session strings to version control. |
+| **Restrict admin access** | Only add trusted Telegram user IDs to `ADMIN_IDS`. |
+| **Keep dependencies updated** | Run `pip install --upgrade -r requirements.txt` regularly to pick up security patches. |
+| **Run as non-root** | The included `Dockerfile` creates a dedicated `botuser` — avoid overriding this with `root`. |
+| **Use MongoDB authentication** | In production, enable authentication on your MongoDB instance or use MongoDB Atlas with a strong password. |
+
+## ❓ Troubleshooting
+
+<details>
+<summary><b>Bot starts but doesn't respond to messages</b></summary>
+
+- Verify `BOT_TOKEN` is correct and the bot is not revoked in [@BotFather](https://t.me/BotFather).
+- If `FSUB_CHANNEL` is set, ensure the bot is an admin in that channel.
+- Check logs with `docker compose logs -f bot` or `journalctl -u url-uploader -f`.
+
+</details>
+
+<details>
+<summary><b>MongoDB connection errors</b></summary>
+
+- Ensure MongoDB is running: `sudo systemctl status mongod`.
+- For Atlas, verify your IP is in the **Network Access** allowlist.
+- Check that `MONGO_URI` uses the correct username, password, and database name.
+
+</details>
+
+<details>
+<summary><b>Uploads fail for files larger than 2 GB</b></summary>
+
+- Large uploads (up to 4 GB) require a Pyrogram **user session**. Generate a session string and set `SESSION_STR`.
+- Ensure FFmpeg is installed — the bot auto-splits files that exceed the Telegram limit.
+
+</details>
+
+<details>
+<summary><b>yt-dlp returns "ERROR: ..." for a URL</b></summary>
+
+- Update yt-dlp to the latest version: `pip install --upgrade yt-dlp`.
+- For age-restricted or login-required content, upload your cookies via the `/cookie` command.
+
+</details>
+
+<details>
+<summary><b>Dashboard returns 403 Forbidden</b></summary>
+
+- Ensure `DASHBOARD_TOKEN` is set in your environment.
+- Pass the token as a query parameter: `https://your-app/?token=YOUR_TOKEN`.
+
+</details>
+
 ## 🤝 Contributing
 
 Contributions are welcome! Here's how you can help:
@@ -574,7 +695,12 @@ Contributions are welcome! Here's how you can help:
 4. **Push** to the branch (`git push origin feature/amazing-feature`)
 5. **Open** a Pull Request
 
-Please make sure your code passes all existing tests before submitting.
+### Guidelines
+
+- Make sure all existing tests pass before submitting: `python -m pytest tests/ -v`
+- Keep changes focused — one feature or fix per PR
+- Follow the existing code style and project structure
+- Update documentation if your change affects user-facing behavior
 
 ## 📄 License
 
