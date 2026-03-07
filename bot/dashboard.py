@@ -189,7 +189,7 @@ def start_dashboard() -> None:
     app = _get_app()
 
     def _run():
-        uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="info")
+        uvicorn.run(app, host="0.0.0.0", port=DASHBOARD_PORT, log_level="info")
 
     t = threading.Thread(target=_run, daemon=True, name="dashboard")
     t.start()

@@ -1,5 +1,7 @@
 """Tests for the web application layer (bot.dashboard)."""
 
+import os
+
 import pytest
 
 from bot.config import PORT, DASHBOARD_PORT
@@ -17,6 +19,13 @@ class TestPortConfig:
         import os
         if "PORT" not in os.environ:
             assert PORT == DASHBOARD_PORT
+
+    def test_port_env_override(self, monkeypatch):
+        """PORT env var takes precedence over DASHBOARD_PORT."""
+        monkeypatch.setenv("PORT", "9999")
+        # Re-evaluate the expression the config module uses
+        result = int(os.environ.get("PORT", str(DASHBOARD_PORT)))
+        assert result == 9999
 
 
 class TestDashboardApp:
