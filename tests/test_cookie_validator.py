@@ -4,7 +4,7 @@ import asyncio
 import os
 import tempfile
 
-from bot.helpers.cookie_validator import validate_cookies
+from bot.helpers.cookie import validate_cookies
 
 
 class TestValidateCookiesInput:

@@ -19,15 +19,19 @@ from bot.config import (
     TG_SPLIT_SIZE,
 )
 from bot.client import user_session
-from bot.helpers.downloader import extract_info, build_format_list, download_media
+from bot.helpers.download import (
+    extract_info,
+    build_format_list,
+    download_media,
+    is_torrent_or_magnet,
+    download_torrent,
+    download_playlist,
+    is_playlist_url,
+)
 from bot.helpers.keyboards import quality_keyboard
 from bot.helpers.utils import human_bytes
 from bot.helpers.fsub import check_fsub
-from bot.helpers.split import split_file
-from bot.helpers.thumbnail import generate_thumbnail
-from bot.helpers.torrent import is_torrent_or_magnet, download_torrent
-from bot.helpers.playlist import download_playlist, is_playlist_url
-from bot.helpers.zipper import create_zip
+from bot.helpers.media import split_file, generate_thumbnail, create_zip
 
 # Simple URL regex
 _URL_RE = re.compile(r"https?://\S+")

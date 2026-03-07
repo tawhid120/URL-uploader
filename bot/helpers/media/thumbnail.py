@@ -7,7 +7,7 @@ when no custom thumbnail has been set by the user.
 import asyncio
 import os
 
-from bot.helpers.split import _probe_duration
+from bot.helpers.media.split import _probe_duration
 
 
 async def generate_thumbnail(video_path: str) -> str | None:

@@ -13,7 +13,7 @@ from bot.database.users import (
     is_banned,
 )
 from bot.config import PLAN_LIMITS, DOWNLOAD_DIR
-from bot.helpers.downloader import download_media
+from bot.helpers.download import download_media
 from bot.helpers.utils import human_bytes
 from bot.helpers.fsub import check_fsub
 

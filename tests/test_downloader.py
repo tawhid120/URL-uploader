@@ -1,6 +1,6 @@
 """Tests for bot.helpers.downloader module (build_format_list only, no network)."""
 
-from bot.helpers.downloader import build_format_list
+from bot.helpers.download import build_format_list
 
 
 class TestBuildFormatList:

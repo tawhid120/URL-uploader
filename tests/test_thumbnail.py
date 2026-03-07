@@ -4,7 +4,7 @@ import asyncio
 import os
 import tempfile
 
-from bot.helpers.thumbnail import generate_thumbnail
+from bot.helpers.media import generate_thumbnail
 
 
 class TestGenerateThumbnail:

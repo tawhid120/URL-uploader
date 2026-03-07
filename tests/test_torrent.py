@@ -1,6 +1,6 @@
 """Tests for bot.helpers.torrent module."""
 
-from bot.helpers.torrent import is_torrent_or_magnet
+from bot.helpers.download.torrent import is_torrent_or_magnet
 
 
 class TestIsTorrentOrMagnet:

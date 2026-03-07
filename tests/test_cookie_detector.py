@@ -1,6 +1,6 @@
 """Tests for bot.helpers.cookie_detector module."""
 
-from bot.helpers.cookie_detector import (
+from bot.helpers.cookie.detector import (
     parse_cookie_file,
     detect_cookies,
     format_detected_cookies,

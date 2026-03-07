@@ -4,7 +4,7 @@ import os
 import tempfile
 import zipfile
 
-from bot.helpers.zipper import create_zip
+from bot.helpers.media import create_zip
 
 
 class TestCreateZip:
