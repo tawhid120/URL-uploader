@@ -2,15 +2,26 @@
 
 # 🚀 URL Uploader Bot
 
-**An advanced, subscription-based Telegram bot for downloading and uploading content from 1500+ sites.**
+### An advanced, subscription-based Telegram bot for downloading and uploading content from 1500+ sites.
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Pyrogram](https://img.shields.io/badge/Pyrogram-2.0-orange?logo=telegram&logoColor=white)](https://docs.pyrogram.org/)
-[![yt-dlp](https://img.shields.io/badge/yt--dlp-supported-red?logo=youtube&logoColor=white)](https://github.com/yt-dlp/yt-dlp)
-[![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![License](https://img.shields.io/badge/License-Educational-blue)](#license)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Pyrogram](https://img.shields.io/badge/Pyrogram-2.0-orange?style=for-the-badge&logo=telegram&logoColor=white)](https://docs.pyrogram.org/)
+[![yt-dlp](https://img.shields.io/badge/yt--dlp-supported-red?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/yt-dlp/yt-dlp)
+[![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-Educational-blue?style=for-the-badge)](#license)
 
-[Features](#-features) · [Quick Start](#-quick-start) · [Deployment](#-vps-deployment) · [Commands](#-bot-commands) · [Contributing](#-contributing)
+<br/>
+
+**Deploy Instantly** &nbsp;→&nbsp;
+[![Deploy to Heroku](https://img.shields.io/badge/Heroku-430098?style=flat-square&logo=heroku&logoColor=white)](#-heroku)
+[![Deploy to Render](https://img.shields.io/badge/Render-46E3B7?style=flat-square&logo=render&logoColor=white)](#-render)
+[![Deploy to Railway](https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white)](#-railway)
+[![Deploy to Koyeb](https://img.shields.io/badge/Koyeb-121212?style=flat-square&logo=koyeb&logoColor=white)](#-koyeb)
+
+<br/>
+
+[Features](#-features) · [Quick Start](#-quick-start) · [Cloud Deployment](#-cloud-deployment) · [Commands](#-bot-commands) · [Contributing](#-contributing)
 
 </div>
 
@@ -24,6 +35,11 @@
 - [Quick Start](#-quick-start)
 - [Configuration](#%EF%B8%8F-configuration)
 - [Docker Deployment](#-docker-deployment)
+- [Cloud Deployment](#-cloud-deployment)
+  - [Heroku](#-heroku)
+  - [Render](#-render)
+  - [Railway](#-railway)
+  - [Koyeb](#-koyeb)
 - [VPS Deployment](#-vps-deployment)
 - [Project Structure](#-project-structure)
 - [Bot Commands](#-bot-commands)
@@ -226,6 +242,167 @@ docker run -d --name url-uploader-bot \
 
 </details>
 
+## ☁️ Cloud Deployment
+
+> **Prerequisites for all cloud platforms:** You need a [MongoDB Atlas](https://www.mongodb.com/atlas) database (free tier available). Local MongoDB is not available on cloud platforms, so set `MONGO_URI` to your Atlas connection string (e.g. `mongodb+srv://user:pass@cluster.mongodb.net/url_uploader_bot`).
+
+### <img src="https://cdn.simpleicons.org/heroku/430098" width="18"/> Heroku
+
+Heroku uses the included `heroku.yml` and `app.json` to build and run the bot as a Docker container.
+
+**One-Click Deploy:**
+
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/tawhid120/URL-uploader)
+
+**Manual CLI Deploy:**
+
+```bash
+# Login and create the app
+heroku login
+heroku create your-app-name --stack container
+
+# Set required environment variables
+heroku config:set API_ID=12345
+heroku config:set API_HASH=abcdef1234567890abcdef1234567890
+heroku config:set BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+heroku config:set MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/url_uploader_bot
+
+# Deploy
+git push heroku main
+
+# Check logs
+heroku logs --tail
+```
+
+> **Note:** Heroku's free tier has been discontinued. Paid plans start at the Eco tier. Check [Heroku's pricing page](https://www.heroku.com/pricing) for current details.
+
+---
+
+### <img src="https://cdn.simpleicons.org/render/46E3B7" width="18"/> Render
+
+Render uses the included `render.yaml` blueprint for automatic configuration. It builds from the Dockerfile and includes a health check on `/health`.
+
+**One-Click Deploy:**
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/tawhid120/URL-uploader)
+
+**Manual Setup:**
+
+1. Go to [render.com](https://render.com/) → **New** → **Web Service**
+2. Connect your GitHub repository
+3. Render auto-detects the `Dockerfile` — no build command needed
+4. Add environment variables under **Environment**:
+   | Variable | Value |
+   |:---------|:------|
+   | `API_ID` | Your Telegram API ID |
+   | `API_HASH` | Your Telegram API Hash |
+   | `BOT_TOKEN` | Your Bot Token |
+   | `MONGO_URI` | Your MongoDB Atlas connection string |
+5. Click **Create Web Service**
+
+> **Tip:** Render's free tier spins down after inactivity. Use a paid plan for always-on deployment, or set up an external cron ping to keep the free instance alive. See [Render's pricing page](https://render.com/pricing) for current plans.
+
+---
+
+### <img src="https://cdn.simpleicons.org/railway/0B0D0E" width="18"/> Railway
+
+Railway uses the included `railway.toml` for build and deploy configuration. It builds from the Dockerfile with health checks and automatic restarts.
+
+**One-Click Deploy:**
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/tawhid120/URL-uploader)
+
+**Manual Setup:**
+
+1. Go to [railway.com](https://railway.com/) → **New Project** → **Deploy from GitHub repo**
+2. Select your forked repository
+3. Railway auto-detects the `Dockerfile` and `railway.toml`
+4. Go to **Variables** and add:
+   | Variable | Value |
+   |:---------|:------|
+   | `API_ID` | Your Telegram API ID |
+   | `API_HASH` | Your Telegram API Hash |
+   | `BOT_TOKEN` | Your Bot Token |
+   | `MONGO_URI` | Your MongoDB Atlas connection string |
+5. Deploy triggers automatically on push
+
+**CLI Deploy (alternative):**
+
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login and initialize
+railway login
+railway init
+
+# Link to your project and deploy
+railway link
+railway up
+```
+
+> **Tip:** Railway offers a free trial with credits to get started. Check [Railway's pricing page](https://railway.com/pricing) for current plans and limits.
+
+---
+
+### <img src="https://cdn.simpleicons.org/koyeb/121212" width="18"/> Koyeb
+
+Koyeb provides serverless deployment with global edge infrastructure and automatic HTTPS.
+
+**Manual Setup:**
+
+1. Go to [app.koyeb.com](https://app.koyeb.com/) → **Create App** → **GitHub**
+2. Connect your repository and select the branch
+3. Set **Builder** to **Dockerfile**
+4. Under **Environment variables**, add:
+   | Variable | Value |
+   |:---------|:------|
+   | `API_ID` | Your Telegram API ID |
+   | `API_HASH` | Your Telegram API Hash |
+   | `BOT_TOKEN` | Your Bot Token |
+   | `MONGO_URI` | Your MongoDB Atlas connection string |
+5. Set the **Health check path** to `/health`
+6. Click **Deploy**
+
+**CLI Deploy (alternative):**
+
+```bash
+# Install Koyeb CLI
+curl -fsSL https://raw.githubusercontent.com/koyeb/koyeb-cli/master/install.sh | sh
+
+# Login
+koyeb login
+
+# Deploy from GitHub
+koyeb app create url-uploader-bot \
+  --docker "github.com/tawhid120/URL-uploader" \
+  --docker-dockerfile Dockerfile \
+  --env API_ID=12345 \
+  --env API_HASH=abcdef1234567890 \
+  --env BOT_TOKEN=123456:ABC-DEF \
+  --env MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/url_uploader_bot \
+  --port 8080:http \
+  --route /:8080
+```
+
+> **Tip:** Koyeb offers a free tier suitable for running this bot. Check [Koyeb's pricing page](https://www.koyeb.com/pricing) for current details.
+
+---
+
+### 📊 Platform Comparison
+
+| Feature | Heroku | Render | Railway | Koyeb |
+|:--------|:------:|:------:|:-------:|:-----:|
+| **Free Tier** | ❌ (paid only) | ✅ (spins down) | ✅ (with credits) | ✅ (Eco instance) |
+| **Always On (Free)** | — | ❌ | ✅ | ✅ |
+| **Docker Support** | ✅ | ✅ | ✅ | ✅ |
+| **Auto Deploy on Push** | ✅ | ✅ | ✅ | ✅ |
+| **Custom Domains** | ✅ | ✅ | ✅ | ✅ |
+| **Health Checks** | ✅ | ✅ | ✅ | ✅ |
+| **One-Click Deploy** | ✅ | ✅ | ✅ | ❌ |
+
+> **Recommendation:** For beginners, **Render** or **Railway** offer the easiest setup experience. For production workloads, **Railway** or **Koyeb** provide the best value with always-on free tiers.
+
 ## 🌐 VPS Deployment
 
 > **Recommended:** 1 vCPU / 1 GB RAM instance (DigitalOcean, Hetzner, Contabo, etc.)
@@ -402,3 +579,21 @@ Please make sure your code passes all existing tests before submitting.
 ## 📄 License
 
 This project is provided as-is for educational purposes.
+
+## 🙏 Acknowledgements
+
+- [Pyrogram](https://docs.pyrogram.org/) — Telegram MTProto API framework
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) — Universal video/audio downloader
+- [FFmpeg](https://ffmpeg.org/) — Media processing toolkit
+- [MongoDB](https://www.mongodb.com/) — NoSQL database
+- [FastAPI](https://fastapi.tiangolo.com/) — Web framework for the admin dashboard
+
+---
+
+<div align="center">
+
+**⭐ Star this repo if you find it useful!**
+
+Made with ❤️ by [tawhid120](https://github.com/tawhid120)
+
+</div>
