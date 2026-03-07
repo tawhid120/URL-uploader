@@ -26,6 +26,7 @@ async def ensure_user(user_id: int, first_name: str) -> dict:
             "joined": datetime.now(timezone.utc),
             "thumbnail": None,
             "cookie_file_id": None,
+            "cookie_domains": [],
             "caption": None,
             "banned": False,
             "daily": {
@@ -91,11 +92,15 @@ async def set_thumbnail(user_id: int, file_id: str | None) -> None:
     )
 
 
-async def set_cookie(user_id: int, file_id: str | None) -> None:
-    """Set or clear a user's cookie file_id."""
+async def set_cookie(
+    user_id: int,
+    file_id: str | None,
+    domains: list[str] | None = None,
+) -> None:
+    """Set or clear a user's cookie file_id and detected domains."""
     await users_col.update_one(
         {"_id": user_id},
-        {"$set": {"cookie_file_id": file_id}},
+        {"$set": {"cookie_file_id": file_id, "cookie_domains": domains or []}},
     )
 
 
