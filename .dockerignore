@@ -15,7 +15,7 @@ venv/
 .venv/
 env/
 
-# Environment variables (secrets)
+# Environment variables (secrets — passed via docker-compose env_file, not baked in)
 .env
 
 # IDE

@@ -26,6 +26,6 @@ EXPOSE ${PORT}
 
 # Health check for the FastAPI dashboard
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -sf http://localhost:${PORT}/ || exit 1
+    CMD ["sh", "-c", "curl -sf http://localhost:${PORT}/ || exit 1"]
 
 CMD ["python", "-m", "bot"]
