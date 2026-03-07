@@ -29,7 +29,7 @@
 
 ## 📖 Overview
 
-URL Uploader Bot is a self-hosted Telegram bot that lets users paste a URL and receive the downloaded content directly in their Telegram chat. It supports **1 500+ websites** through [yt-dlp](https://github.com/yt-dlp/yt-dlp), including YouTube, Instagram, TikTok, Twitter/X, Reddit, and more. The bot features a **tiered subscription system** with configurable daily limits, a **FastAPI admin dashboard** for monitoring, and out-of-the-box Docker support for one-command deployment on any cloud platform.
+URL Uploader Bot is a self-hosted Telegram bot that lets users paste a URL and receive the downloaded content directly in their Telegram chat. It supports **1500+ websites** through [yt-dlp](https://github.com/yt-dlp/yt-dlp), including YouTube, Instagram, TikTok, Twitter/X, Reddit, and more. The bot features a **tiered subscription system** with configurable daily limits, a **FastAPI admin dashboard** for monitoring, and out-of-the-box Docker support for one-command deployment on any cloud platform.
 
 ---
 
