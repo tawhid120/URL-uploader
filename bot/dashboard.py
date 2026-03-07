@@ -5,12 +5,20 @@ Provides a read-only overview of bot statistics and user management
 """
 
 import os
+import secrets
 from datetime import datetime, timezone
 
 from bot.config import ADMIN_IDS, DASHBOARD_PORT, DASHBOARD_TOKEN
 
 # Lazy imports – FastAPI / uvicorn are optional dependencies.
 _app = None
+
+
+def _token_ok(token: str) -> bool:
+    """Constant-time comparison of *token* against the configured secret."""
+    if not DASHBOARD_TOKEN:
+        return False
+    return secrets.compare_digest(token, DASHBOARD_TOKEN)
 
 
 def _get_app():
@@ -26,14 +34,14 @@ def _get_app():
 
     # ---- auth dependency ----
     async def _verify_token(token: str = Query(...)):
-        if not DASHBOARD_TOKEN or token != DASHBOARD_TOKEN:
+        if not _token_ok(token):
             raise HTTPException(status_code=403, detail="Invalid token")
 
     # ---- routes ----
     @app.get("/", response_class=HTMLResponse)
     async def dashboard(token: str = Query(...)):
         """Main dashboard page."""
-        if not DASHBOARD_TOKEN or token != DASHBOARD_TOKEN:
+        if not _token_ok(token):
             raise HTTPException(status_code=403, detail="Invalid token")
 
         from bot.database.users import users_col
@@ -110,7 +118,7 @@ def start_dashboard() -> None:
     app = _get_app()
 
     def _run():
-        uvicorn.run(app, host="0.0.0.0", port=DASHBOARD_PORT, log_level="warning")
+        uvicorn.run(app, host="127.0.0.1", port=DASHBOARD_PORT, log_level="warning")
 
     t = threading.Thread(target=_run, daemon=True, name="dashboard")
     t.start()

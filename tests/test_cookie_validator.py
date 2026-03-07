@@ -1,5 +1,6 @@
 """Tests for bot.helpers.cookie_validator module (structure only, no network)."""
 
+import asyncio
 import os
 import tempfile
 
@@ -11,7 +12,6 @@ class TestValidateCookiesInput:
 
     def test_empty_path(self):
         """Empty string should return False."""
-        import asyncio
         result = asyncio.get_event_loop().run_until_complete(
             validate_cookies("")
         )
@@ -19,7 +19,6 @@ class TestValidateCookiesInput:
 
     def test_nonexistent_path(self):
         """Path that doesn't exist should return False."""
-        import asyncio
         result = asyncio.get_event_loop().run_until_complete(
             validate_cookies("/tmp/nonexistent_cookie_12345.txt")
         )

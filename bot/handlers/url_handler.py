@@ -202,7 +202,7 @@ async def _do_download(
     if thumb_fid:
         thumb_path = os.path.join(DOWNLOAD_DIR, str(user.id), "thumb.jpg")
         await client.download_media(thumb_fid, file_name=thumb_path)
-    elif not file_path.endswith(".mp3"):
+    elif file_path.endswith((".mp4", ".mkv", ".webm", ".avi", ".mov", ".flv")):
         # Auto-generate thumbnail from video when user hasn't set one
         thumb_path = await generate_thumbnail(file_path)
 
