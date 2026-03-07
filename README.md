@@ -23,6 +23,7 @@
 - [Premium Plans](#-premium-plans)
 - [Quick Start](#-quick-start)
 - [Configuration](#%EF%B8%8F-configuration)
+- [Docker Deployment](#-docker-deployment)
 - [VPS Deployment](#-vps-deployment)
 - [Project Structure](#-project-structure)
 - [Bot Commands](#-bot-commands)
@@ -162,6 +163,65 @@ FSUB_CHANNEL=
 
 # Admin user IDs (comma-separated)
 ADMIN_IDS=123456789
+```
+
+</details>
+
+## 🐳 Docker Deployment
+
+Docker Compose is the easiest way to deploy — it sets up both the bot **and** MongoDB automatically.
+
+### 1. Clone & configure
+
+```bash
+git clone https://github.com/tawhid120/URL-uploader.git
+cd URL-uploader
+cp .env.example .env
+nano .env   # fill in API_ID, API_HASH, BOT_TOKEN, etc.
+```
+
+### 2. Start everything
+
+```bash
+docker compose up -d --build
+```
+
+This launches two containers:
+| Container | Description |
+|:----------|:------------|
+| `url-uploader-bot` | The Telegram bot + FastAPI dashboard |
+| `url-uploader-mongo` | MongoDB 7 database |
+
+### 3. Useful commands
+
+```bash
+# View live logs
+docker compose logs -f bot
+
+# Restart the bot after config changes
+docker compose restart bot
+
+# Stop everything
+docker compose down
+
+# Stop and remove stored data (MongoDB volume)
+docker compose down -v
+```
+
+<details>
+<summary><b>Run without Compose (standalone container)</b></summary>
+
+If you already have a MongoDB instance, you can run just the bot:
+
+```bash
+docker build -t url-uploader .
+docker run -d --name url-uploader-bot \
+    -e API_ID=12345 \
+    -e API_HASH=abcdef1234567890 \
+    -e BOT_TOKEN=123456:ABC-DEF \
+    -e MONGO_URI=mongodb://your-mongo-host:27017 \
+    -p 8080:8080 \
+    url-uploader
 ```
 
 </details>
