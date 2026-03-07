@@ -4,7 +4,7 @@ import asyncio
 import os
 import tempfile
 
-from bot.helpers.split import split_file, _probe_duration
+from bot.helpers.media.split import split_file, _probe_duration
 
 
 class TestSplitFileSmall:

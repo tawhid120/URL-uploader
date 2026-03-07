@@ -1,6 +1,6 @@
 """Tests for bot.helpers.playlist module."""
 
-from bot.helpers.playlist import is_playlist_url
+from bot.helpers.download import is_playlist_url
 
 
 class TestIsPlaylistUrl:

@@ -18,9 +18,9 @@ from bot.helpers.keyboards import (
     upgrade_keyboard,
 )
 from bot.helpers.utils import human_bytes, plan_display
-from bot.handlers.url_handler import pending_urls, _do_download
-from bot.helpers.cookie_validator import validate_cookies
-from bot.helpers.cookie_detector import detect_cookies, format_detected_cookies
+from bot.handlers.upload.url_handler import pending_urls, _do_download
+from bot.helpers.cookie import validate_cookies
+from bot.helpers.cookie import detect_cookies, format_detected_cookies
 
 
 @Client.on_callback_query(filters.regex(r"^set_thumb$"))

@@ -247,34 +247,47 @@ sudo journalctl -u url-uploader -f
 URL-uploader/
 ├── bot/
 │   ├── __init__.py
-│   ├── __main__.py              # Entry point
-│   ├── client.py                # Pyrogram bot + user session clients
-│   ├── config.py                # Configuration (env vars & plan limits)
+│   ├── __main__.py                  # Entry point
+│   ├── client.py                    # Pyrogram bot + user session clients
+│   ├── config.py                    # Configuration (env vars & plan limits)
+│   ├── dashboard.py                 # Admin web dashboard (FastAPI)
 │   ├── database/
 │   │   ├── __init__.py
-│   │   └── users.py             # MongoDB user operations
+│   │   └── users.py                 # MongoDB user operations
 │   ├── handlers/
 │   │   ├── __init__.py
-│   │   ├── admin.py             # /broadcast, /ban, /unban (admin only)
-│   │   ├── bulk.py              # /bulk and /abort commands
-│   │   ├── callbacks.py         # Inline-button callback handler
-│   │   ├── cookie.py            # /cookie and /delcookie commands
-│   │   ├── help.py              # /help command
-│   │   ├── myplan.py            # /myplan command
-│   │   ├── settings.py          # /settings command
-│   │   ├── start.py             # /start command
-│   │   ├── thumbnail.py         # Photo thumbnail + /delthumb
-│   │   ├── upgrade.py           # /upgrade command
-│   │   └── url_handler.py       # URL processing, download & upload
+│   │   ├── callbacks.py             # Inline-button callback handler
+│   │   ├── commands/                # User-facing commands
+│   │   │   ├── start.py             #   /start
+│   │   │   ├── help.py              #   /help
+│   │   │   ├── settings.py          #   /settings
+│   │   │   ├── myplan.py            #   /myplan
+│   │   │   └── upgrade.py           #   /upgrade
+│   │   ├── admin/                   # Admin-only commands
+│   │   │   └── commands.py          #   /broadcast, /ban, /unban
+│   │   └── upload/                  # Content handling
+│   │       ├── url_handler.py       #   URL download & upload
+│   │       ├── bulk.py              #   /bulk and /abort
+│   │       ├── cookie.py            #   /cookie and /delcookie
+│   │       └── thumbnail.py         #   Photo thumbnail + /delthumb
 │   └── helpers/
 │       ├── __init__.py
-│       ├── downloader.py        # yt-dlp download logic
-│       ├── fsub.py              # Force-subscribe check
-│       ├── keyboards.py         # Inline keyboard layouts
-│       ├── split.py             # FFmpeg auto-split for large files
-│       └── utils.py             # Utility functions
-├── tests/                       # Test suite
-├── .env.example                 # Sample environment config
+│       ├── fsub.py                  # Force-subscribe check
+│       ├── keyboards.py             # Inline keyboard layouts
+│       ├── utils.py                 # Utility functions
+│       ├── cookie/                  # Cookie helpers
+│       │   ├── detector.py          #   Smart cookie auto-detection
+│       │   └── validator.py         #   yt-dlp cookie validation
+│       ├── download/                # Download helpers
+│       │   ├── downloader.py        #   yt-dlp download logic
+│       │   ├── playlist.py          #   Playlist / gallery downloads
+│       │   └── torrent.py           #   Torrent & magnet-link handler
+│       └── media/                   # Media processing helpers
+│           ├── split.py             #   FFmpeg auto-split for large files
+│           ├── thumbnail.py         #   Auto-thumbnail generator
+│           └── zipper.py            #   ZIP packaging for playlists
+├── tests/                           # Test suite
+├── .env.example                     # Sample environment config
 ├── .gitignore
 ├── requirements.txt
 └── README.md
