@@ -15,19 +15,9 @@ from bot.logging_config import setup_logging
 setup_logging()
 
 from bot.config import PORT  # noqa: E402
+from bot.handlers import register_handlers  # noqa: E402
 
-# Register all Pyrogram handlers by importing them.
-import bot.handlers.commands.start  # noqa: F401, E402
-import bot.handlers.commands.help  # noqa: F401, E402
-import bot.handlers.commands.settings  # noqa: F401, E402
-import bot.handlers.commands.myplan  # noqa: F401, E402
-import bot.handlers.commands.upgrade  # noqa: F401, E402
-import bot.handlers.upload.bulk  # noqa: F401, E402
-import bot.handlers.upload.cookie  # noqa: F401, E402
-import bot.handlers.upload.thumbnail  # noqa: F401, E402
-import bot.handlers.admin.commands  # noqa: F401, E402
-import bot.handlers.upload.url_handler  # noqa: F401, E402
-import bot.handlers.callbacks  # noqa: F401, E402
+register_handlers()
 
 logger = logging.getLogger(__name__)
 

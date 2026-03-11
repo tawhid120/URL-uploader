@@ -51,6 +51,10 @@ def _get_app():
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         from bot.client import bot, user_session
+        from bot.handlers import register_handlers
+
+        # Ensure handlers are loaded for all startup paths.
+        register_handlers()
 
         logger.info("Starting Telegram bot via web-app lifespan…")
         # Pyrogram's Dispatcher stores asyncio.get_event_loop() at Client
