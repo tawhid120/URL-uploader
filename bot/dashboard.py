@@ -15,6 +15,7 @@ Endpoints
 * ``POST /unban?token=…&user_id=…`` — unban a user
 """
 
+import asyncio
 import logging
 import os
 import secrets
@@ -52,9 +53,17 @@ def _get_app():
         from bot.client import bot, user_session
 
         logger.info("Starting Telegram bot via web-app lifespan…")
+        # Pyrogram's Dispatcher stores asyncio.get_event_loop() at Client
+        # creation time.  When the Client is created at module-import time
+        # (before uvicorn starts), that loop differs from the one uvicorn
+        # is actually running.  Patch it so add_handler tasks execute on
+        # the live loop, otherwise handlers are silently never registered.
+        _loop = asyncio.get_running_loop()
+        bot.dispatcher.loop = _loop
         await bot.start()
         if user_session:
             logger.info("User session detected — starting for 4 GB uploads.")
+            user_session.dispatcher.loop = _loop
             await user_session.start()
         logger.info("Telegram bot is running.")
         yield
