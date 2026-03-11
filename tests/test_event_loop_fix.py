@@ -9,6 +9,8 @@ so that handler-registration tasks actually execute.
 
 import asyncio
 from collections import OrderedDict
+from types import SimpleNamespace
+from unittest.mock import patch
 
 import pytest
 
@@ -58,20 +60,30 @@ class TestDispatcherLoopPatch:
             "dispatcher.loop must be patched BEFORE bot.start() is called"
         )
 
-    def test_lifespan_imports_handlers_before_start(self):
-        """The lifespan should import handlers so direct uvicorn startup works."""
-        import inspect
+    def test_lifespan_registers_handlers_before_start(self):
+        """The lifespan should register handlers so direct uvicorn startup works."""
         from bot.dashboard import _get_app
 
-        app = _get_app()
-        lifespan = app.router.lifespan_context
-        src = inspect.getsource(lifespan)
+        order = []
 
-        import_idx = src.find("import bot.handlers.commands.start")
-        start_idx = src.find("bot.start()")
-        assert import_idx != -1, "lifespan must import handler modules"
-        assert start_idx != -1, "lifespan must call bot.start()"
-        assert import_idx < start_idx, "handlers must be imported BEFORE bot.start()"
+        class DummyBot:
+            dispatcher = SimpleNamespace(loop=None)
+
+            async def start(self):
+                order.append("start")
+
+            async def stop(self):
+                order.append("stop")
+
+        async def _test():
+            app = _get_app()
+            with patch("bot.client.bot", DummyBot()), patch("bot.client.user_session", None):
+                with patch("bot.handlers.register_handlers", side_effect=lambda: order.append("register")):
+                    async with app.router.lifespan_context(app):
+                        pass
+
+        _run_coroutine(_test())
+        assert order[:2] == ["register", "start"]
 
     def test_add_handler_on_correct_loop_registers(self):
         """Simulates that patching the loop allows add_handler tasks to run."""
