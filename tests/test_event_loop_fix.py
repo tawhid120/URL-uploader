@@ -25,19 +25,19 @@ class TestDispatcherLoopPatch:
     def test_import_time_loop_differs_from_asyncio_run(self):
         """asyncio.run() creates a new event loop, different from the
         loop returned by get_event_loop() at import time."""
-        import_loop = asyncio.new_event_loop()
+        manual_loop = asyncio.new_event_loop()
         try:
             # A loop created manually is never the same object as the one
-            # created inside asyncio.run().
-            assert import_loop is not asyncio.get_event_loop()
+            # returned by get_event_loop() for the main thread.
+            assert manual_loop is not asyncio.get_event_loop()
         finally:
-            import_loop.close()
+            manual_loop.close()
 
     def test_dashboard_imports_asyncio(self):
         """bot.dashboard must import asyncio for the loop patch."""
         import bot.dashboard as dashboard
 
-        assert hasattr(dashboard, "asyncio") or "asyncio" in dir(dashboard)
+        assert hasattr(dashboard, "asyncio")
 
     def test_lifespan_patches_loop(self):
         """The lifespan source must assign bot.dispatcher.loop before start."""
@@ -69,7 +69,7 @@ class TestDispatcherLoopPatch:
                     groups[0] = []
                 groups[0].append(name)
 
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             loop.create_task(add_to_groups("start_handler"))
             loop.create_task(add_to_groups("help_handler"))
             await asyncio.sleep(0)  # yield so tasks run
@@ -92,7 +92,7 @@ class TestDispatcherLoopPatch:
         async def _test():
             # Simulate add_handler using a DIFFERENT loop
             other_loop.create_task(add_to_groups("start_handler"))
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0)
             # Handlers are NOT in groups because other_loop isn't running
             assert len(groups) == 0
 
